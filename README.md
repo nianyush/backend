@@ -22,7 +22,7 @@ CREATE TABLE tasks(
     stat pstatus,
     pid INT,
     assignee integer[],
-    assginer INT
+    assigner INT
 );
 </code></pre>
 # Testing

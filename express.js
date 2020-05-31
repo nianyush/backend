@@ -55,23 +55,47 @@ app.get('/API/users', function (req, res) {
                 surname: req.query.surname !== undefined ? req.query.surname : ne
             }
         });
-        ret = JSON.stringify(ret);
-        ret = { "length": ret.length, "result": ret }; //add pagnination
+        ret = { "length": ret.length, "result": JSON.stringify(ret) }; //add pagnination
         res.end(JSON.stringify(ret));
     })();
 });
 app.get('/API/tasks', function (req, res) {
     (async () => {
-        var ret = await users.findAll({
+        var assigner = await users.findAll({
+            where: {
+                username: req.query.ausername !== undefined ? req.query.ausername : ne,
+                surname: req.query.asurname !== undefined ? req.query.asurname : ne,
+                id: req.query.aid !== undefined ? req.query.aid : ne,
+            }
+        });
+        assigner = JSON.parse(JSON.stringify(assigner));
+        var assignerId = [];
+        for (t in assigner) {
+            assignerId.push(assigner[t].id);
+        }
+        var assignee = await users.findAll({
+            where: {
+                username: req.query.busername !== undefined ? JSON.parse(req.query.busername) : ne,
+                surname: req.query.bsurname !== undefined ? JSON.parse(req.query.bsurname) : ne,
+                id: req.query.bid !== undefined ? req.query.bid : ne,
+            }
+        });
+        assignee = JSON.parse(JSON.stringify(assignee));
+        var assigneeId = [];
+        for (t in assignee) {
+            assigneeId.push(assignee[t].id);
+        }
+        var ret = await tasks.findAll({
             where: {
                 pname: req.query.pname !== undefined ? req.query.pname : ne,
                 pdescription: req.query.pdescription !== undefined ? req.query.pdescription : ne,
-                pdescription: req.query.pdescription !== undefined ? req.query.pdescription : ne,
-                
+                score: req.query.score !== undefined ? req.query.score : ne,
+                stat: req.query.stat !== undefined ? req.query.stat : ne,
+                assignee: assignee !== [] ? {[Op.contains] : assigneeId} : ne,
+                assigner: assigner !== [] ? assignerId : ne,
             }
         });
-        ret = JSON.stringify(ret);
-        ret = { "length": ret.length, "result": ret };
+        ret = { "length": ret.length, "result": JSON.stringify(ret) };
         res.end(JSON.stringify(ret));
     })();
 })
