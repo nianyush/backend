@@ -1,4 +1,4 @@
-Create tables in the database:
+# Create tables in the database:
 <pre><code>
 CREATE TABLE users(
     id SERIAL PRIMARY KEY,
@@ -25,4 +25,7 @@ CREATE TABLE tasks(
     assginer INT
 );
 </code></pre>
-Use test.html to test the functionality
+# Testing
+1.Launch the server at localhost:8081
+<code>node express.js</code>
+2.Use test.html to test the functionality
