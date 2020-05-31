@@ -25,3 +25,4 @@ CREATE TABLE tasks(
     assginer INT
 );
 </code></pre>
+Use test.html to test the functionality
