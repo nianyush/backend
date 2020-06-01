@@ -1,9 +1,12 @@
 const express = require('express');
 const { Op } = require('sequelize');
 const Sequelize = require('sequelize');
+var bodyParser = require('body-parser');
+const { check, validationResult } = require('express-validator');
 const config = require('./config');
 
 var app = express();
+var urlencodedParser = bodyParser.urlencoded({ extended: false })
 //define database object and models 
 var sequelize = new Sequelize(config.database, config.username, config.password, {
     host: config.host,
@@ -66,14 +69,18 @@ app.get('/API/users', function (req, res) {
         res.end(JSON.stringify({ "length": 0, "result": [] }));
     } else {
         (async () => {
-            var ret = await users.findAll({
-                where: {
-                    username: req.query.username !== undefined ? req.query.username : ne,  // check if it is defined
-                    surname: req.query.surname !== undefined ? req.query.surname : ne
-                }
-            });
-            ret = { "length": ret.length, "result": JSON.stringify(ret) }; //add pagnination
-            res.end(JSON.stringify(ret));
+            try {
+                var ret = await users.findAll({
+                    where: {
+                        username: req.query.username !== undefined ? req.query.username : ne,  // check if it is defined
+                        surname: req.query.surname !== undefined ? req.query.surname : ne
+                    }
+                });
+                ret = { "length": ret.length, "result": JSON.stringify(ret) }; //add pagnination
+                res.end(JSON.stringify(ret));
+            } catch {
+                res.status(500).send("Internal server error.");
+            }
         })();
     }
 });
@@ -92,43 +99,47 @@ app.get('/API/tasks', function (req, res) {
         res.end(JSON.stringify({ "length": 0, "result": [] }));
     } else {
         (async () => {
-            var assigner = await users.findAll({
-                where: {
-                    username: req.query.ausername !== undefined ? req.query.ausername : ne,
-                    surname: req.query.asurname !== undefined ? req.query.asurname : ne,
-                    id: req.query.aid !== undefined ? req.query.aid : ne,
+            try {
+                var assigner = await users.findAll({
+                    where: {
+                        username: req.query.ausername !== undefined ? req.query.ausername : ne,
+                        surname: req.query.asurname !== undefined ? req.query.asurname : ne,
+                        id: req.query.aid !== undefined ? req.query.aid : ne,
+                    }
+                });
+                assigner = JSON.parse(JSON.stringify(assigner));
+                var assignerId = [];
+                for (t in assigner) {
+                    assignerId.push(assigner[t].id);
                 }
-            });
-            assigner = JSON.parse(JSON.stringify(assigner));
-            var assignerId = [];
-            for (t in assigner) {
-                assignerId.push(assigner[t].id);
+                var assignee = await users.findAll({
+                    where: {
+                        username: req.query.busername !== undefined ? JSON.parse(req.query.busername) : ne,
+                        surname: req.query.bsurname !== undefined ? JSON.parse(req.query.bsurname) : ne,
+                        id: req.query.bid !== undefined ? req.query.bid : ne,
+                    }
+                });
+                assignee = JSON.parse(JSON.stringify(assignee));
+                var assigneeId = [];
+                for (t in assignee) {
+                    assigneeId.push(assignee[t].id);
+                }
+                var ret = await tasks.findAll({
+                    where: {
+                        pname: req.query.pname !== undefined ? req.query.pname : ne,
+                        pdescription: req.query.pdescription !== undefined ? req.query.pdescription : ne,
+                        score: req.query.score !== undefined ? { [Op.gte]: req.query.score } : ne,
+                        stat: req.query.stat !== undefined ? req.query.stat : ne,
+                        assignee: assignee !== [] ? { [Op.contains]: assigneeId } : ne,
+                        assigner: assigner !== [] ? assignerId : ne,
+                        pid: req.query.pid !== undefined ? req.query.pid : ne
+                    }
+                });
+                ret = { "length": ret.length, "result": JSON.stringify(ret) };
+                res.end(JSON.stringify(ret));
+            } catch {
+                res.status(500).send("Internal server error.");
             }
-            var assignee = await users.findAll({
-                where: {
-                    username: req.query.busername !== undefined ? JSON.parse(req.query.busername) : ne,
-                    surname: req.query.bsurname !== undefined ? JSON.parse(req.query.bsurname) : ne,
-                    id: req.query.bid !== undefined ? req.query.bid : ne,
-                }
-            });
-            assignee = JSON.parse(JSON.stringify(assignee));
-            var assigneeId = [];
-            for (t in assignee) {
-                assigneeId.push(assignee[t].id);
-            }
-            var ret = await tasks.findAll({
-                where: {
-                    pname: req.query.pname !== undefined ? req.query.pname : ne,
-                    pdescription: req.query.pdescription !== undefined ? req.query.pdescription : ne,
-                    score: req.query.score !== undefined ? { [Op.gte]: req.query.score } : ne,
-                    stat: req.query.stat !== undefined ? req.query.stat : ne,
-                    assignee: assignee !== [] ? { [Op.contains]: assigneeId } : ne,
-                    assigner: assigner !== [] ? assignerId : ne,
-                    pid: req.query.pid !== undefined ? req.query.pid : ne
-                }
-            });
-            ret = { "length": ret.length, "result": JSON.stringify(ret) };
-            res.end(JSON.stringify(ret));
         })();
     }
 });
@@ -146,80 +157,156 @@ app.get('/API/projects', function (req, res) {
         res.end(JSON.stringify({ "length": 0, "result": [] }));
     } else {
         (async () => {
-            var assigner = await users.findAll({
-                where: {
-                    username: req.query.ausername !== undefined ? req.query.ausername : ne,
-                    surname: req.query.asurname !== undefined ? req.query.asurname : ne,
-                    id: req.query.aid !== undefined ? req.query.aid : ne,
+            try {
+                var assigner = await users.findAll({
+                    where: {
+                        username: req.query.ausername !== undefined ? req.query.ausername : ne,
+                        surname: req.query.asurname !== undefined ? req.query.asurname : ne,
+                        id: req.query.aid !== undefined ? req.query.aid : ne,
+                    }
+                });
+                assigner = JSON.parse(JSON.stringify(assigner));
+                var assignerId = [];
+                for (t in assigner) {
+                    assignerId.push(assigner[t].id);
                 }
-            });
-            assigner = JSON.parse(JSON.stringify(assigner));
-            var assignerId = [];
-            for (t in assigner) {
-                assignerId.push(assigner[t].id);
-            }
-            var assignee = await users.findAll({
-                where: {
-                    username: req.query.busername !== undefined ? JSON.parse(req.query.busername) : ne,
-                    surname: req.query.bsurname !== undefined ? JSON.parse(req.query.bsurname) : ne,
-                    id: req.query.bid !== undefined ? req.query.bid : ne,
+                var assignee = await users.findAll({
+                    where: {
+                        username: req.query.busername !== undefined ? JSON.parse(req.query.busername) : ne,
+                        surname: req.query.bsurname !== undefined ? JSON.parse(req.query.bsurname) : ne,
+                        id: req.query.bid !== undefined ? req.query.bid : ne,
+                    }
+                });
+                assignee = JSON.parse(JSON.stringify(assignee));
+                var assigneeId = [];
+                for (t in assignee) {
+                    assigneeId.push(assignee[t].id);
                 }
-            });
-            assignee = JSON.parse(JSON.stringify(assignee));
-            var assigneeId = [];
-            for (t in assignee) {
-                assigneeId.push(assignee[t].id);
-            }
-            var ret = await projects.findAll({
-                where: {
-                    pname: req.query.pname !== undefined ? req.query.pname : ne,
-                    body: req.query.body !== undefined ? req.query.body : ne,
-                    stat: req.query.stat !== undefined ? req.query.stat : ne,
-                    assignee: assignee !== [] ? { [Op.contains]: assigneeId } : ne,
-                    assigner: assigner !== [] ? assignerId : ne,
-                }
-            });
-            var p = JSON.parse(JSON.stringify(ret));
-            console.log(p);
-            //check if all tasks score meet the requirement and calc the average score
-            ret = []
-            for (i in p) {
-                var flag = 0;
-                if (req.query.score !== undefined) {
-                    var ret2 = await tasks.findAll({
-                        attributes: ['score'],
-                        where: {
-                            pid: p[i].id,
-                        }
-                    });
-                    ret2 = JSON.parse(JSON.stringify(ret2));
-                    for (j in ret2) {
-                        if (ret2[j] < req.query.score) {
-                            flag = 1;
+                var ret = await projects.findAll({
+                    where: {
+                        pname: req.query.pname !== undefined ? req.query.pname : ne,
+                        body: req.query.body !== undefined ? req.query.body : ne,
+                        stat: req.query.stat !== undefined ? req.query.stat : ne,
+                        assignee: assignee !== [] ? { [Op.contains]: assigneeId } : ne,
+                        assigner: assigner !== [] ? assignerId : ne,
+                    }
+                });
+                var p = JSON.parse(JSON.stringify(ret));
+                console.log(p);
+                //check if all tasks score meet the requirement and calc the average score
+                ret = []
+                for (i in p) {
+                    var flag = 0;
+                    if (req.query.score !== undefined) {
+                        var ret2 = await tasks.findAll({
+                            attributes: ['score'],
+                            where: {
+                                pid: p[i].id,
+                            }
+                        });
+                        ret2 = JSON.parse(JSON.stringify(ret2));
+                        for (j in ret2) {
+                            if (ret2[j] < req.query.score) {
+                                flag = 1;
+                            }
                         }
                     }
-                }
-                if (flag === 0) { //all task score are no less than requested score.
-                    ret2 = await tasks.findAll({
-                        attributes: ['score'],
-                        where: {
-                            pid: p[i].id,
-                            stat: 'completed'
+                    if (flag === 0) { //all task score are no less than requested score.
+                        ret2 = await tasks.findAll({
+                            attributes: ['score'],
+                            where: {
+                                pid: p[i].id,
+                                stat: 'completed'
+                            }
+                        });
+                        ret2 = JSON.parse(JSON.stringify(ret2));
+                        var average = 0;
+                        for (j in ret2) {
+                            average += ret2[j].score;
                         }
-                    });
-                    ret2 = JSON.parse(JSON.stringify(ret2));
-                    var average = 0;
-                    for (j in ret2) {
-                        average += ret2[j].score;
+                        p[i]["average"] = average / ret2.length;
+                        ret.push(p[i]);
                     }
-                    p[i]["average"] = average / ret2.length;
-                    ret.push(p[i]);
                 }
+                ret = { "length": ret.length, "result": JSON.stringify(ret) };
+                res.end(JSON.stringify(ret));
+            } catch {
+                res.status(500).send("Internal server error.");
             }
-            ret = { "length": ret.length, "result": JSON.stringify(ret) };
-            res.end(JSON.stringify(ret));
         })();
     }
+});
+app.post('/API/users', urlencodedParser, function (req, res) {
+    (async () => {
+        if (req.query.username == undefined ||
+            req.query.surname == undefined ||
+            req.query.email == undefined) { //check if any arg is presented
+            res.status(500).send("Internal server error.");
+        } else {
+            try {
+                var ret = await users.create({
+                    username: req.query.username,
+                    surname: req.query.surname,
+                    email: req.query.email
+                });
+                res.end(JSON.stringify(ret));
+            } catch {
+                res.status(500).send("Internal server error.");
+            }
+        }
+    })();
+});
+app.post('/API/tasks', urlencodedParser, function (req, res) {
+    (async () => {
+        if (req.query.pname == undefined ||
+            req.query.pdescription == undefined ||
+            req.query.score == undefined ||
+            req.query.pid == undefined ||
+            req.query.stat == undefined ||
+            req.query.assignee == undefined ||
+            req.query.assigner == undefined) { //check if any arg is presented
+            res.status(500).send("Internal server error.");
+        } else {
+            try {
+                var ret = await tasks.create({
+                    pname: req.query.pname,
+                    pdescription: req.query.pdescription,
+                    score: req.query.score,
+                    stat: req.query.stat,
+                    pid: req.query.pid,
+                    assignee: req.query.assignee,
+                    assigner: req.query.assigner
+                });
+                res.end(JSON.stringify(ret));
+            } catch {
+                res.status(500).send("Internal server error.");
+            }
+        }
+    })();
+});
+app.post('/API/projects', urlencodedParser, function (req, res) {
+    (async () => {
+        if (req.query.pname == undefined ||
+            req.query.body == undefined ||
+            req.query.stat == undefined ||
+            req.query.assignee == undefined ||
+            req.query.assigner == undefined) { //check if any arg is presented
+            res.status(500).send("Internal server error.");
+        } else {
+            try {
+                var ret = await projects.create({
+                    pname: req.query.pname,
+                    body: req.query.body,
+                    stat: req.query.stat,
+                    assignee: req.query.assignee,
+                    assigner: req.query.assigner
+                });
+                res.end(JSON.stringify(ret));
+            } catch {
+                res.status(500).send("Internal server error.");
+            }
+        }
+    })();
 });
 var server = app.listen(8081, function () {
 
