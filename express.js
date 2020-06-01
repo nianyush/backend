@@ -100,6 +100,7 @@ app.get('/API/tasks', function (req, res) {
     } else {
         (async () => {
             try {
+                //get id of assigner by username/surname/id
                 var assigner = await users.findAll({
                     where: {
                         username: req.query.ausername !== undefined ? req.query.ausername : ne,
@@ -112,6 +113,7 @@ app.get('/API/tasks', function (req, res) {
                 for (t in assigner) {
                     assignerId.push(assigner[t].id);
                 }
+                //get id of assignees by username/surname/id
                 var assignee = await users.findAll({
                     where: {
                         username: req.query.busername !== undefined ? JSON.parse(req.query.busername) : ne,
@@ -158,6 +160,7 @@ app.get('/API/projects', function (req, res) {
     } else {
         (async () => {
             try {
+                //get id of assigner by username/surname/id
                 var assigner = await users.findAll({
                     where: {
                         username: req.query.ausername !== undefined ? req.query.ausername : ne,
@@ -170,6 +173,7 @@ app.get('/API/projects', function (req, res) {
                 for (t in assigner) {
                     assignerId.push(assigner[t].id);
                 }
+                //get id of assignees by username/surname/id
                 var assignee = await users.findAll({
                     where: {
                         username: req.query.busername !== undefined ? JSON.parse(req.query.busername) : ne,
